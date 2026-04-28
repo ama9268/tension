@@ -387,9 +387,14 @@ python manage.py migrate
 docker compose up -d --build          # Construir y arrancar
 docker compose logs -f web            # Logs en tiempo real
 docker compose restart web            # Reiniciar app
-docker compose exec web python manage.py migrate
-docker compose exec web python manage.py createsuperuser
 docker compose down                   # Parar
+
+# Migraciones en Docker: solo cuando haya cambios de modelos
+# (la BD de producción ya tiene el esquema aplicado)
+RUN_MIGRATIONS=true docker compose up -d --build web
+
+# Crear superusuario (una sola vez)
+docker compose exec web python manage.py createsuperuser
 
 # systemd (alternativa sin Docker)
 sudo systemctl status tension

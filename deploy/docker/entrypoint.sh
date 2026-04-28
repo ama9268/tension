@@ -1,8 +1,16 @@
 #!/bin/sh
 set -e
 
-echo "==> [tension] Aplicando migraciones..."
-python manage.py migrate --noinput
+# Ejecutar migraciones solo si se solicita explícitamente.
+# La BD de producción ya tiene el esquema aplicado; solo activar
+# cuando se despliegue un cambio de modelos:
+#   RUN_MIGRATIONS=true docker compose up -d --build
+if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
+    echo "==> [tension] Aplicando migraciones..."
+    python manage.py migrate --noinput
+else
+    echo "==> [tension] Migraciones omitidas (RUN_MIGRATIONS != true)"
+fi
 
 echo "==> [tension] Recogiendo archivos estáticos..."
 python manage.py collectstatic --noinput --clear
