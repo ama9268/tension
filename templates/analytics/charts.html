@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block title %}Gráficas — Tension{% endblock %}
+
+{% block content %}
+<div class="space-y-5">
+
+  <h1 class="text-2xl font-bold">Gráficas</h1>
+
+  <!-- Filtros de fechas -->
+  <div class="card p-4">
+    <div class="flex flex-wrap gap-3 items-end">
+      <div class="flex-1 min-w-[140px]">
+        <label class="form-label">Desde</label>
+        <input type="date" id="date-from" class="form-input">
+      </div>
+      <div class="flex-1 min-w-[140px]">
+        <label class="form-label">Hasta</label>
+        <input type="date" id="date-to" class="form-input">
+      </div>
+      <button id="btn-load" class="btn-primary">Cargar gráficas</button>
+    </div>
+  </div>
+
+  <!-- Gráfica de presión -->
+  <div class="card p-5">
+    <h2 class="font-semibold mb-4">Presión arterial</h2>
+    <div class="relative" style="height: 300px;">
+      <canvas id="chartBP"></canvas>
+    </div>
+  </div>
+
+  <!-- Gráfica de pulso -->
+  <div class="card p-5">
+    <h2 class="font-semibold mb-4">Pulso (ppm)</h2>
+    <div class="relative" style="height: 220px;">
+      <canvas id="chartPulse"></canvas>
+    </div>
+  </div>
+
+  <!-- Leyenda de clasificaciones -->
+  <div class="card p-4">
+    <h3 class="font-medium text-sm mb-3 text-slate-500 uppercase tracking-wider">Clasificación AHA/ACC 2017</h3>
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+      <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-green-400 inline-block"></span>Normal &lt;120/80</div>
+      <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span>Elevada 120–129/&lt;80</div>
+      <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-orange-400 inline-block"></span>HTA E1 130–139/80–89</div>
+      <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>HTA E2 ≥140/≥90</div>
+      <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-900 inline-block"></span>Crisis &gt;180/&gt;120</div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  var chartBP = null;
+  var chartPulse = null;
+
+  // Inicializar fechas: últimos 30 días
+  (function () {
+    var now = new Date();
+    var from = new Date(now);
+    from.setDate(from.getDate() - 30);
+    document.getElementById('date-to').value = now.toISOString().split('T')[0];
+    document.getElementById('date-from').value = from.toISOString().split('T')[0];
+  })();
+
+  function isDark() {
+    return document.documentElement.classList.contains('dark');
+  }
+
+  function chartColors(dark) {
+    return {
+      grid: dark ? 'rgba(148,163,184,0.15)' : 'rgba(0,0,0,0.08)',
+      text: dark ? '#94a3b8' : '#64748b',
+    };
+  }
+
+  function buildChartBP(labels, sysAvg, sysMax, sysMin, diaAvg, diaMax, diaMin) {
+    var dark = isDark();
+    var c = chartColors(dark);
+    var ctx = document.getElementById('chartBP').getContext('2d');
+    if (chartBP) chartBP.destroy();
+    chartBP = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Sistólica (promedio)',
+            data: sysAvg,
+            borderColor: '#e11d48',
+            backgroundColor: 'rgba(225,29,72,0.1)',
+            tension: 0.3,
+            fill: false,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+          },
+          {
+            label: 'Diastólica (promedio)',
+            data: diaAvg,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59,130,246,0.1)',
+            tension: 0.3,
+            fill: false,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+          },
+          {
+            label: 'Sistólica máx',
+            data: sysMax,
+            borderColor: 'rgba(225,29,72,0.3)',
+            borderDash: [4, 4],
+            tension: 0.3,
+            fill: false,
+            pointRadius: 2,
+          },
+          {
+            label: 'Diastólica máx',
+            data: diaMax,
+            borderColor: 'rgba(59,130,246,0.3)',
+            borderDash: [4, 4],
+            tension: 0.3,
+            fill: false,
+            pointRadius: 2,
+          },
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { labels: { color: c.text } },
+          annotation: {
+            annotations: {
+              line130: { type: 'line', yMin: 130, yMax: 130, borderColor: 'rgba(249,115,22,0.5)', borderDash: [6, 3], label: { content: 'HTA E1 130', display: true, color: '#f97316', font: { size: 10 } } },
+              line140: { type: 'line', yMin: 140, yMax: 140, borderColor: 'rgba(239,68,68,0.5)', borderDash: [6, 3], label: { content: 'HTA E2 140', display: true, color: '#ef4444', font: { size: 10 } } },
+            }
+          }
+        },
+        scales: {
+          x: { ticks: { color: c.text }, grid: { color: c.grid } },
+          y: { min: 50, ticks: { color: c.text }, grid: { color: c.grid } }
+        }
+      }
+    });
+  }
+
+  function buildChartPulse(labels, pulseAvg) {
+    var dark = isDark();
+    var c = chartColors(dark);
+    var ctx = document.getElementById('chartPulse').getContext('2d');
+    if (chartPulse) chartPulse.destroy();
+    chartPulse = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Pulso promedio (ppm)',
+          data: pulseAvg,
+          borderColor: '#16a34a',
+          backgroundColor: 'rgba(22,163,74,0.1)',
+          tension: 0.3,
+          fill: true,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: c.text } } },
+        scales: {
+          x: { ticks: { color: c.text }, grid: { color: c.grid } },
+          y: { min: 40, ticks: { color: c.text }, grid: { color: c.grid } }
+        }
+      }
+    });
+  }
+
+  window.updateChartsTheme = function (dark) {
+    if (chartBP) { chartBP.destroy(); chartBP = null; }
+    if (chartPulse) { chartPulse.destroy(); chartPulse = null; }
+    // Re-cargar con los datos actuales
+    loadCharts();
+  };
+
+  var lastData = null;
+
+  function loadCharts() {
+    var from = document.getElementById('date-from').value;
+    var to = document.getElementById('date-to').value;
+    var url = '/api/v1/analytics/chart/?from=' + from + '&to=' + to;
+
+    fetch(url, {
+      headers: { 'X-CSRFToken': getCookie('csrftoken') }
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      lastData = data;
+      if (!data.length) {
+        document.getElementById('chartBP').getContext('2d').clearRect(0, 0, 9999, 9999);
+        document.getElementById('chartPulse').getContext('2d').clearRect(0, 0, 9999, 9999);
+        return;
+      }
+      var labels = data.map(function (d) { return d.date; });
+      buildChartBP(
+        labels,
+        data.map(function (d) { return d.sys_avg; }),
+        data.map(function (d) { return d.sys_max; }),
+        data.map(function (d) { return d.sys_min; }),
+        data.map(function (d) { return d.dia_avg; }),
+        data.map(function (d) { return d.dia_max; }),
+        data.map(function (d) { return d.dia_min; })
+      );
+      buildChartPulse(labels, data.map(function (d) { return d.pulse_avg; }));
+    })
+    .catch(function (e) { console.error('Error cargando gráficas:', e); });
+  }
+
+  function getCookie(name) {
+    var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+    return v ? v[2] : null;
+  }
+
+  document.getElementById('btn-load').addEventListener('click', loadCharts);
+
+  // Cargar al iniciar
+  loadCharts();
+</script>
+{% endblock %}

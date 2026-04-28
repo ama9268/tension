@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Iniciar sesión — Tension{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-8">
+  <div class="card p-8">
+    <div class="text-center mb-6">
+      <div class="inline-flex items-center justify-center w-14 h-14 bg-rose-100 dark:bg-rose-900 rounded-full mb-3">
+        <svg class="w-8 h-8 text-rose-700 dark:text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold">Tension</h1>
+      <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Registro de presión arterial</p>
+    </div>
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      {% for field in form %}
+      <div>
+        <label class="form-label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+        <p class="text-red-600 dark:text-red-400 text-xs mt-1">{{ field.errors.0 }}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      {% if form.non_field_errors %}
+      <div class="p-3 rounded-lg bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-sm">
+        {{ form.non_field_errors.0 }}
+      </div>
+      {% endif %}
+
+      <button type="submit" class="btn-primary w-full py-3 text-base mt-2">
+        Entrar
+      </button>
+    </form>
+
+    <p class="text-center mt-4 text-sm text-slate-500 dark:text-slate-400">
+      ¿No tienes cuenta?
+      <a href="{% url 'register' %}" class="text-rose-600 dark:text-rose-400 hover:underline font-medium">
+        Regístrate
+      </a>
+    </p>
+  </div>
+</div>
+{% endblock %}

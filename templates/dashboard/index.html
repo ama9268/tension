@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Tension{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Cabecera -->
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold">Dashboard</h1>
+    <a href="{% url 'reading-create' %}" class="btn-primary">
+      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Nueva lectura
+    </a>
+  </div>
+
+  {% if latest %}
+  <!-- Última lectura -->
+  <div class="card p-5">
+    <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Última lectura</p>
+    <div class="flex items-end gap-4 flex-wrap">
+      <div>
+        <span class="text-5xl font-bold text-rose-700 dark:text-rose-400">{{ latest.systolic }}</span>
+        <span class="text-3xl font-light text-slate-400 mx-1">/</span>
+        <span class="text-3xl font-semibold text-slate-600 dark:text-slate-300">{{ latest.diastolic }}</span>
+        <span class="text-sm text-slate-400 ml-1">mmHg</span>
+      </div>
+      {% if latest.pulse %}
+      <div class="text-center">
+        <div class="text-2xl font-semibold text-slate-600 dark:text-slate-300">{{ latest.pulse }}</div>
+        <div class="text-xs text-slate-400">ppm</div>
+      </div>
+      {% endif %}
+      <div>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ latest.classification_color }}">
+          {{ latest.classification_label }}
+        </span>
+      </div>
+    </div>
+    <p class="text-xs text-slate-400 mt-3">
+      {{ latest.measured_at|date:"d/m/Y H:i" }}
+      {% if latest.time_of_day %} · {{ latest.get_time_of_day_display }}{% endif %}
+    </p>
+  </div>
+
+  <!-- Stats semana -->
+  {% if week_stats %}
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    <div class="card p-4 text-center">
+      <div class="text-2xl font-bold text-rose-600 dark:text-rose-400">
+        {{ week_stats.systolic_avg|floatformat:0 }}
+      </div>
+      <div class="text-xs text-slate-500 mt-1">Sistólica promedio</div>
+    </div>
+    <div class="card p-4 text-center">
+      <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+        {{ week_stats.diastolic_avg|floatformat:0 }}
+      </div>
+      <div class="text-xs text-slate-500 mt-1">Diastólica promedio</div>
+    </div>
+    {% if week_stats.pulse_avg %}
+    <div class="card p-4 text-center">
+      <div class="text-2xl font-bold text-green-600 dark:text-green-400">
+        {{ week_stats.pulse_avg|floatformat:0 }}
+      </div>
+      <div class="text-xs text-slate-500 mt-1">Pulso promedio</div>
+    </div>
+    {% endif %}
+    <div class="card p-4 text-center">
+      <div class="text-2xl font-bold text-slate-600 dark:text-slate-300">
+        {{ week_stats.count }}
+      </div>
+      <div class="text-xs text-slate-500 mt-1">Lecturas (7 días)</div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <!-- Sin datos -->
+  <div class="card p-10 text-center">
+    <svg class="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+    </svg>
+    <p class="text-slate-500 dark:text-slate-400 mb-4">Aún no tienes lecturas registradas.</p>
+    <a href="{% url 'reading-create' %}" class="btn-primary">Añadir primera lectura</a>
+  </div>
+  {% endif %}
+
+  <!-- Últimas lecturas -->
+  {% if latest_readings %}
+  <div class="card overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-slate-700">
+      <h2 class="font-semibold">Últimas lecturas</h2>
+      <a href="{% url 'reading-list' %}" class="text-sm text-rose-600 dark:text-rose-400 hover:underline">Ver todas</a>
+    </div>
+    <div class="divide-y divide-slate-100 dark:divide-slate-700">
+      {% for r in latest_readings %}
+      <div class="flex items-center justify-between px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-750">
+        <div class="flex items-center gap-3">
+          <div class="text-center min-w-[70px]">
+            <span class="font-bold text-rose-700 dark:text-rose-400">{{ r.systolic }}</span>
+            <span class="text-slate-400">/</span>
+            <span class="font-semibold text-slate-600 dark:text-slate-300">{{ r.diastolic }}</span>
+          </div>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ r.classification_color }}">
+            {{ r.classification_label }}
+          </span>
+        </div>
+        <div class="text-right">
+          <div class="text-xs text-slate-500">{{ r.measured_at|date:"d/m/Y" }}</div>
+          <div class="text-xs text-slate-400">{{ r.measured_at|date:"H:i" }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Accesos rápidos -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+    <a href="{% url 'reading-create' %}" class="card p-4 flex flex-col items-center gap-2 hover:shadow-md transition-shadow text-center">
+      <svg class="w-8 h-8 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      <span class="text-sm font-medium">Nueva lectura</span>
+    </a>
+    <a href="{% url 'charts' %}" class="card p-4 flex flex-col items-center gap-2 hover:shadow-md transition-shadow text-center">
+      <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+      </svg>
+      <span class="text-sm font-medium">Gráficas</span>
+    </a>
+    <a href="{% url 'agent' %}" class="card p-4 flex flex-col items-center gap-2 hover:shadow-md transition-shadow text-center">
+      <svg class="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2"/>
+      </svg>
+      <span class="text-sm font-medium">Agente IA</span>
+    </a>
+  </div>
+
+</div>
+{% endblock %}

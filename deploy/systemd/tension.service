@@ -1,0 +1,23 @@
+[Unit]
+Description=Tension — Sistema de Registro de Presión Arterial
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=antonio
+Group=antonio
+WorkingDirectory=/home/antonio/Tension
+EnvironmentFile=/home/antonio/Tension/.env
+Environment=DJANGO_SETTINGS_MODULE=tension_project.settings.production
+ExecStart=/home/antonio/Tension/venv/bin/gunicorn \
+    --workers 3 \
+    --bind 127.0.0.1:8000 \
+    --timeout 90 \
+    --access-logfile - \
+    --error-logfile - \
+    tension_project.wsgi:application
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

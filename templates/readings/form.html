@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — Tension{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+  <div class="flex items-center gap-3 mb-5">
+    <a href="{% url 'reading-list' %}" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <h1 class="text-2xl font-bold">{{ title }}</h1>
+  </div>
+
+  <div class="card p-6">
+    <form method="post" class="space-y-5">
+      {% csrf_token %}
+
+      <!-- Sistólica y Diastólica en la misma fila -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="form-label">{{ form.systolic.label }} *</label>
+          <input type="number" name="systolic" value="{{ form.systolic.value|default:'' }}"
+            min="50" max="300" required
+            class="form-input text-lg font-semibold text-center"
+            placeholder="120">
+          {% if form.systolic.errors %}
+          <p class="text-red-600 text-xs mt-1">{{ form.systolic.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div>
+          <label class="form-label">{{ form.diastolic.label }} *</label>
+          <input type="number" name="diastolic" value="{{ form.diastolic.value|default:'' }}"
+            min="30" max="200" required
+            class="form-input text-lg font-semibold text-center"
+            placeholder="80">
+          {% if form.diastolic.errors %}
+          <p class="text-red-600 text-xs mt-1">{{ form.diastolic.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Pulso -->
+      <div>
+        <label class="form-label">{{ form.pulse.label }}</label>
+        <input type="number" name="pulse" value="{{ form.pulse.value|default:'' }}"
+          min="30" max="220"
+          class="form-input"
+          placeholder="72">
+        {% if form.pulse.errors %}
+        <p class="text-red-600 text-xs mt-1">{{ form.pulse.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Fecha y hora -->
+      <div>
+        <label class="form-label">{{ form.measured_at.label }} *</label>
+        <input type="datetime-local" name="measured_at"
+          value="{{ form.measured_at.value|default:'' }}"
+          required
+          class="form-input">
+        {% if form.measured_at.errors %}
+        <p class="text-red-600 text-xs mt-1">{{ form.measured_at.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Momento del día -->
+      <div>
+        <label class="form-label">{{ form.time_of_day.label }}</label>
+        <select name="time_of_day" class="form-input">
+          <option value="">— Sin especificar —</option>
+          {% for val, label in form.fields.time_of_day.choices %}
+          {% if val %}
+          <option value="{{ val }}" {% if form.time_of_day.value == val %}selected{% endif %}>{{ label }}</option>
+          {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Notas -->
+      <div>
+        <label class="form-label">{{ form.notes.label }}</label>
+        <textarea name="notes" rows="3" class="form-input"
+          placeholder="Ejercicio previo, estrés, medicación, síntomas...">{{ form.notes.value|default:'' }}</textarea>
+      </div>
+
+      {% if form.non_field_errors %}
+      <div class="p-3 rounded-lg bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-sm">
+        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="btn-primary flex-1 py-3 text-base">
+          {{ btn_label }}
+        </button>
+        <a href="{% url 'reading-list' %}" class="btn-secondary px-6 py-3">
+          Cancelar
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

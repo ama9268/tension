@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}Lecturas — Tension{% endblock %}
+
+{% block content %}
+<div class="space-y-5">
+
+  <!-- Cabecera -->
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold">Lecturas</h1>
+    <a href="{% url 'reading-create' %}" class="btn-primary">+ Nueva</a>
+  </div>
+
+  <!-- Filtros -->
+  <form method="get" class="card p-4">
+    <div class="flex flex-wrap gap-3 items-end">
+      <div class="flex-1 min-w-[140px]">
+        <label class="form-label">Desde</label>
+        <input type="date" name="from" value="{{ date_from }}" class="form-input">
+      </div>
+      <div class="flex-1 min-w-[140px]">
+        <label class="form-label">Hasta</label>
+        <input type="date" name="to" value="{{ date_to }}" class="form-input">
+      </div>
+      <div class="flex gap-2">
+        <button type="submit" class="btn-primary">Filtrar</button>
+        {% if date_from or date_to %}
+        <a href="{% url 'reading-list' %}" class="btn-secondary">Limpiar</a>
+        {% endif %}
+      </div>
+    </div>
+  </form>
+
+  <!-- Exportar CSV -->
+  <div class="flex justify-end">
+    <a href="/api/v1/readings/export/{% if date_from or date_to %}?{% if date_from %}from={{ date_from }}{% endif %}{% if date_from and date_to %}&{% endif %}{% if date_to %}to={{ date_to }}{% endif %}{% endif %}"
+       class="btn-secondary text-sm gap-1">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+      </svg>
+      Exportar CSV
+    </a>
+  </div>
+
+  <!-- Tabla de lecturas -->
+  {% if readings %}
+  <div class="card overflow-hidden">
+    <!-- Desktop: tabla -->
+    <div class="hidden sm:block overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 dark:bg-slate-700/50 text-xs uppercase text-slate-500 dark:text-slate-400">
+          <tr>
+            <th class="px-4 py-3 text-left">Fecha / Hora</th>
+            <th class="px-4 py-3 text-center">Sistólica</th>
+            <th class="px-4 py-3 text-center">Diastólica</th>
+            <th class="px-4 py-3 text-center">Pulso</th>
+            <th class="px-4 py-3 text-left">Clasificación</th>
+            <th class="px-4 py-3 text-left">Notas</th>
+            <th class="px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+          {% for r in readings %}
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-750">
+            <td class="px-4 py-3">
+              <div class="font-medium">{{ r.measured_at|date:"d/m/Y" }}</div>
+              <div class="text-xs text-slate-400">{{ r.measured_at|date:"H:i" }}{% if r.time_of_day %} · {{ r.get_time_of_day_display }}{% endif %}</div>
+            </td>
+            <td class="px-4 py-3 text-center font-bold text-rose-700 dark:text-rose-400">{{ r.systolic }}</td>
+            <td class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">{{ r.diastolic }}</td>
+            <td class="px-4 py-3 text-center text-slate-500">{{ r.pulse|default:"—" }}</td>
+            <td class="px-4 py-3">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ r.classification_color }}">
+                {{ r.classification_label }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-slate-500 max-w-[180px] truncate">{{ r.notes|default:"" }}</td>
+            <td class="px-4 py-3">
+              <div class="flex gap-2">
+                <a href="{% url 'reading-update' r.pk %}" class="text-slate-400 hover:text-rose-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                  </svg>
+                </a>
+                <a href="{% url 'reading-delete' r.pk %}" class="text-slate-400 hover:text-red-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile: cards -->
+    <div class="sm:hidden divide-y divide-slate-100 dark:divide-slate-700">
+      {% for r in readings %}
+      <div class="p-4">
+        <div class="flex justify-between items-start">
+          <div>
+            <div class="flex items-baseline gap-1">
+              <span class="text-2xl font-bold text-rose-700 dark:text-rose-400">{{ r.systolic }}</span>
+              <span class="text-slate-400">/</span>
+              <span class="text-xl font-semibold text-slate-600 dark:text-slate-300">{{ r.diastolic }}</span>
+              <span class="text-xs text-slate-400">mmHg</span>
+              {% if r.pulse %}
+              <span class="text-sm text-slate-500 ml-2">{{ r.pulse }} ppm</span>
+              {% endif %}
+            </div>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ r.classification_color }}">
+                {{ r.classification_label }}
+              </span>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <a href="{% url 'reading-update' r.pk %}" class="text-slate-400 hover:text-rose-600">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+            </a>
+            <a href="{% url 'reading-delete' r.pk %}" class="text-slate-400 hover:text-red-600">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+        <div class="text-xs text-slate-400 mt-2">
+          {{ r.measured_at|date:"d/m/Y H:i" }}{% if r.time_of_day %} · {{ r.get_time_of_day_display }}{% endif %}
+        </div>
+        {% if r.notes %}
+        <p class="text-sm text-slate-500 mt-1 truncate">{{ r.notes }}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Paginación -->
+  {% if is_paginated %}
+  <div class="flex justify-center gap-2">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% if date_from %}&from={{ date_from }}{% endif %}{% if date_to %}&to={{ date_to }}{% endif %}" class="btn-secondary">‹ Anterior</a>
+    {% endif %}
+    <span class="px-4 py-2 text-sm text-slate-500">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if date_from %}&from={{ date_from }}{% endif %}{% if date_to %}&to={{ date_to }}{% endif %}" class="btn-secondary">Siguiente ›</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="card p-10 text-center">
+    <p class="text-slate-500 dark:text-slate-400 mb-4">No se encontraron lecturas con los filtros aplicados.</p>
+    <a href="{% url 'reading-create' %}" class="btn-primary">Añadir lectura</a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

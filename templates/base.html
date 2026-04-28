@@ -1,0 +1,208 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es" class="">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Tension{% endblock %}</title>
+  <!-- Inicializar tema ANTES de renderizar para evitar flash -->
+  <script>
+    (function () {
+      var t = localStorage.getItem('tension-theme');
+      if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches))
+        document.documentElement.classList.add('dark');
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { DEFAULT: '#9f1239', dark: '#881337' }
+          }
+        }
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer components {
+      .nav-link {
+        @apply px-3 py-2 rounded-md text-sm font-medium text-rose-100 hover:bg-rose-700 dark:hover:bg-slate-700 transition-colors;
+      }
+      .nav-link-mobile {
+        @apply block px-3 py-2 rounded-md text-base font-medium text-rose-100 hover:bg-rose-700 dark:hover:bg-slate-700;
+      }
+      .btn-primary {
+        @apply inline-flex items-center justify-center px-4 py-2 bg-rose-700 hover:bg-rose-800 dark:bg-rose-800 dark:hover:bg-rose-900 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500;
+      }
+      .btn-secondary {
+        @apply inline-flex items-center justify-center px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-lg transition-colors;
+      }
+      .card {
+        @apply bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700;
+      }
+      .form-input {
+        @apply block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent;
+      }
+      .form-label {
+        @apply block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1;
+      }
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex flex-col min-h-screen">
+
+  <!-- Navbar -->
+  <header class="bg-rose-800 dark:bg-slate-800 shadow-lg sticky top-0 z-50">
+    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-14">
+
+        <!-- Logo -->
+        <a href="{% url 'dashboard' %}" class="flex items-center gap-2 text-white font-extrabold text-lg tracking-wide">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+          </svg>
+          Tension
+        </a>
+
+        {% if user.is_authenticated %}
+        <!-- Nav Desktop -->
+        <div class="hidden md:flex items-center space-x-1">
+          <a href="{% url 'dashboard' %}" class="nav-link">Inicio</a>
+          <a href="{% url 'reading-list' %}" class="nav-link">Lecturas</a>
+          <a href="{% url 'reading-create' %}" class="nav-link">+ Nueva</a>
+          <a href="{% url 'charts' %}" class="nav-link">Gráficas</a>
+          <a href="{% url 'agent' %}" class="nav-link">Agente IA</a>
+          <span class="text-rose-300 text-sm px-2">{{ user.username }}</span>
+          <a href="{% url 'logout' %}" class="nav-link">Salir</a>
+          <!-- Toggle tema -->
+          <button id="theme-toggle" class="p-2 rounded-full text-rose-200 hover:bg-rose-700 dark:hover:bg-slate-700" title="Cambiar tema">
+            <svg id="icon-sun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+            <svg id="icon-moon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Mobile: toggle + hamburguesa -->
+        <div class="flex md:hidden items-center gap-2">
+          <button id="theme-toggle-mobile" class="p-2 rounded-full text-rose-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+            </svg>
+          </button>
+          <button id="menu-btn" class="p-2 rounded-md text-rose-200 hover:bg-rose-700" aria-label="Menú">
+            <svg id="icon-menu" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+            <svg id="icon-close" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        {% else %}
+        <a href="{% url 'login' %}" class="text-rose-100 hover:text-white text-sm font-medium">
+          Iniciar sesión
+        </a>
+        {% endif %}
+
+      </div>
+    </nav>
+
+    {% if user.is_authenticated %}
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-rose-900 dark:bg-slate-900 border-t border-rose-700 dark:border-slate-700">
+      <div class="px-4 pt-2 pb-4 space-y-1">
+        <a href="{% url 'dashboard' %}" class="nav-link-mobile">Inicio</a>
+        <a href="{% url 'reading-list' %}" class="nav-link-mobile">Lecturas</a>
+        <a href="{% url 'reading-create' %}" class="nav-link-mobile">+ Nueva lectura</a>
+        <a href="{% url 'charts' %}" class="nav-link-mobile">Gráficas</a>
+        <a href="{% url 'agent' %}" class="nav-link-mobile">Agente IA</a>
+        <hr class="border-rose-700 dark:border-slate-700 my-2">
+        <span class="block px-3 py-1 text-rose-300 text-sm">{{ user.username }}</span>
+        <a href="{% url 'logout' %}" class="nav-link-mobile">Salir</a>
+      </div>
+    </div>
+    {% endif %}
+  </header>
+
+  <!-- Mensajes Django -->
+  {% if messages %}
+  <div class="max-w-7xl mx-auto w-full px-4 mt-4 space-y-2">
+    {% for message in messages %}
+    <div class="p-3 rounded-lg text-sm font-medium
+      {% if message.tags == 'error' %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
+      {% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+      {% else %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% endif %}">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Contenido principal -->
+  <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-rose-800 dark:bg-slate-800 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 py-3 text-center text-rose-300 dark:text-slate-400 text-xs">
+      Tension &copy; <span id="footer-year"></span> &mdash; Registro de presión arterial
+    </div>
+  </footer>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+  <script>
+    // Footer año
+    document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+    // Tema dark/light
+    function applyTheme(dark) {
+      document.documentElement.classList.toggle('dark', dark);
+      localStorage.setItem('tension-theme', dark ? 'dark' : 'light');
+      var sun = document.getElementById('icon-sun');
+      var moon = document.getElementById('icon-moon');
+      if (sun && moon) {
+        sun.classList.toggle('hidden', !dark);
+        moon.classList.toggle('hidden', dark);
+      }
+      if (typeof window.updateChartsTheme === 'function') {
+        window.updateChartsTheme(dark);
+      }
+    }
+    function toggleTheme() {
+      applyTheme(!document.documentElement.classList.contains('dark'));
+    }
+    // Inicializar icono
+    applyTheme(document.documentElement.classList.contains('dark'));
+
+    document.getElementById('theme-toggle')?.addEventListener('click', toggleTheme);
+    document.getElementById('theme-toggle-mobile')?.addEventListener('click', toggleTheme);
+
+    // Menú hamburguesa
+    var menuBtn = document.getElementById('menu-btn');
+    var mobileMenu = document.getElementById('mobile-menu');
+    var iconMenu = document.getElementById('icon-menu');
+    var iconClose = document.getElementById('icon-close');
+    menuBtn?.addEventListener('click', function () {
+      var open = mobileMenu.classList.toggle('hidden');
+      iconMenu.classList.toggle('hidden', !open);
+      iconClose.classList.toggle('hidden', open);
+    });
+  </script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
