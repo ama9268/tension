@@ -1,0 +1,37 @@
+# Entorno virtual y dependencias instaladas
+venv/
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Base de datos local de desarrollo
+*.sqlite3
+db.sqlite3
+
+# Secretos — NUNCA en la imagen
+.env
+
+# Archivos estáticos recopilados (se generan en el contenedor)
+staticfiles/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# IDEs y OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Claude
+.claude/
+
+# Logs
+*.log

@@ -230,12 +230,108 @@ Métodos clave:
 
 ---
 
-## Despliegue en VPS
+## Despliegue con Docker (recomendado)
+
+Archivos clave:
+
+| Archivo | Descripción |
+|---------|-------------|
+| `Dockerfile` | Imagen Python 3.11-slim + Gunicorn |
+| `docker-compose.yml` | Stack completo: web + db (PostgreSQL) + nginx |
+| `.dockerignore` | Excluye venv, .env, sqlite3, staticfiles |
+| `deploy/docker/entrypoint.sh` | migrate + collectstatic + gunicorn al arrancar |
+| `deploy/nginx/tension-docker.conf` | Nginx para Docker (proxy a `web:8000`) |
+
+### Variables .env adicionales para Docker
+
+```env
+# Contraseña para el PostgreSQL del contenedor db
+DB_PASSWORD=elige-una-contraseña-segura
+
+# Si usas BD externa, sustituye la URL completa en DATABASE_URL
+# y comenta el servicio db en docker-compose.yml
+```
+
+### Primeros pasos en el VPS
+
+```bash
+# 1. Instalar Docker y Docker Compose en el VPS (Ubuntu/Debian)
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER   # cerrar sesión y volver a entrar
+
+# 2. Clonar el repo y configurar
+git clone https://github.com/ama9268/tension.git
+cd tension
+cp .env.example .env
+# Editar .env: SECRET_KEY, DATABASE_URL con host=db, DB_PASSWORD,
+#              ANTHROPIC_API_KEY, ALLOWED_HOSTS=<ip-o-dominio>
+
+# 3. Construir y arrancar
+docker compose up -d --build
+
+# 4. Crear superusuario (una sola vez)
+docker compose exec web python manage.py createsuperuser
+```
+
+### DATABASE_URL para el contenedor db interno
+
+```env
+DATABASE_URL=postgresql://tension_user:${DB_PASSWORD}@db:5432/tension
+```
+
+> Si usas una BD **externa**, mantén tu URL actual y comenta el servicio `db` en `docker-compose.yml`.
+
+### Comandos de operación Docker
+
+```bash
+# Ver logs en tiempo real
+docker compose logs -f web
+
+# Reiniciar solo la app
+docker compose restart web
+
+# Aplicar migraciones manualmente
+docker compose exec web python manage.py migrate
+
+# Crear superusuario
+docker compose exec web python manage.py createsuperuser
+
+# Shell de Django
+docker compose exec web python manage.py shell
+
+# Parar todo
+docker compose down
+
+# Parar y eliminar volúmenes (¡borra la BD!)
+docker compose down -v
+
+# Reconstruir imagen tras cambios en código
+docker compose up -d --build web
+```
+
+### HTTPS con Certbot (producción)
+
+```bash
+# Instalar certbot en el VPS (fuera de Docker)
+sudo apt install certbot python3-certbot-nginx
+
+# Asegúrate de que tu dominio apunta a la IP del VPS y que nginx escucha en :80
+# Emitir certificado (sustituye tudominio.com)
+sudo certbot --nginx -d tudominio.com
+
+# Descomenta el bloque HTTPS en deploy/nginx/tension-docker.conf
+# y recarga nginx:
+docker compose restart nginx
+```
+
+---
+
+## Despliegue en VPS sin Docker (alternativa con systemd)
 
 ```bash
 # En el VPS (Ubuntu/Debian)
 cd /home/antonio
-git clone <repo> Tension
+git clone https://github.com/ama9268/tension.git Tension
 cd Tension
 python3.11 -m venv venv
 source venv/bin/activate
@@ -281,18 +377,23 @@ Las recomendaciones nuevas se persisten en `Recomendaciones.md` bajo su categor�
 ## Comandos Frecuentes
 
 ```bash
-# Desarrollo
+# Desarrollo local
 python manage.py runserver
 python manage.py shell
-
-# Base de datos
 python manage.py makemigrations
 python manage.py migrate
-python manage.py dbshell
 
-# Producción
-python manage.py collectstatic --noinput
+# Docker (producción)
+docker compose up -d --build          # Construir y arrancar
+docker compose logs -f web            # Logs en tiempo real
+docker compose restart web            # Reiniciar app
+docker compose exec web python manage.py migrate
+docker compose exec web python manage.py createsuperuser
+docker compose down                   # Parar
+
+# systemd (alternativa sin Docker)
 sudo systemctl status tension
-sudo journalctl -u tension -f    # Logs en tiempo real
+sudo journalctl -u tension -f
 sudo systemctl restart tension
+python manage.py collectstatic --noinput
 ```
