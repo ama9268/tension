@@ -30,6 +30,9 @@ class BloodPressureReadingForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if not self.instance.pk:
+        if self.instance.pk:
+            local_dt = timezone.localtime(self.instance.measured_at)
+            self.initial["measured_at"] = local_dt.strftime("%Y-%m-%dT%H:%M")
+        else:
             now = timezone.localtime(timezone.now())
-            self.fields["measured_at"].initial = now.strftime("%Y-%m-%dT%H:%M")
+            self.initial["measured_at"] = now.strftime("%Y-%m-%dT%H:%M")
