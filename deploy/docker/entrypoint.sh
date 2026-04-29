@@ -18,7 +18,7 @@ python manage.py collectstatic --noinput --clear
 echo "==> [tension] Iniciando Gunicorn (workers=${GUNICORN_WORKERS:-3})..."
 exec gunicorn \
     --workers "${GUNICORN_WORKERS:-3}" \
-    --bind "0.0.0.0:8000" \
+    --bind "0.0.0.0:8080" \
     --timeout 90 \
     --access-logfile - \
     --error-logfile - \
