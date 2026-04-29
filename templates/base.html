@@ -1,11 +1,16 @@
-{% load static pwa %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="es" class="">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Tension{% endblock %}</title>
-  {% progressive_web_app_meta %}
+  <link rel="manifest" href="{% static 'manifest.json' %}">
+  <meta name="theme-color" content="#9f1239">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Tension">
+  <link rel="apple-touch-icon" href="{% static 'images/icons/icon-180x180.png' %}">
   <!-- Inicializar tema ANTES de renderizar para evitar flash -->
   <script>
     (function () {
@@ -211,5 +216,11 @@
   </script>
 
   {% block extra_js %}{% endblock %}
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('{% static "js/serviceworker.js" %}');
+    }
+  </script>
 </body>
 </html>
