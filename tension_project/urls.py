@@ -1,9 +1,17 @@
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from django.http import HttpResponse
 from django.urls import include, path
+from django.views.decorators.cache import cache_control
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+
+@cache_control(max_age=86400)
+def serviceworker(request):
+    js = open(settings.BASE_DIR / "static" / "js" / "serviceworker.js").read()
+    return HttpResponse(js, content_type="application/javascript")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -21,6 +29,9 @@ urlpatterns = [
     path("api/v1/token/", obtain_auth_token, name="api-token"),
     path("api/v1/jwt/", TokenObtainPairView.as_view(), name="jwt-obtain"),
     path("api/v1/jwt/refresh/", TokenRefreshView.as_view(), name="jwt-refresh"),
+
+    # PWA
+    path("serviceworker.js", serviceworker, name="serviceworker"),
 
     # Apps web
     path("", include("apps.dashboard.urls")),
