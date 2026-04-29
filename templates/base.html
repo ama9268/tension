@@ -83,7 +83,7 @@
           <a href="{% url 'reading-create' %}" class="nav-link">+ Nueva</a>
           <a href="{% url 'charts' %}" class="nav-link">Gráficas</a>
           <a href="{% url 'agent' %}" class="nav-link">Agente IA</a>
-          <span class="text-rose-300 text-sm px-2">{{ user.username }}</span>
+          <a href="{% url 'profile' %}" class="text-rose-300 hover:text-white text-sm px-2">{{ user.username }}</a>
           <form method="post" action="{% url 'logout' %}">
             {% csrf_token %}
             <button type="submit" class="nav-link">Salir</button>
@@ -137,7 +137,7 @@
         <a href="{% url 'charts' %}" class="nav-link-mobile">Gráficas</a>
         <a href="{% url 'agent' %}" class="nav-link-mobile">Agente IA</a>
         <hr class="border-rose-700 dark:border-slate-700 my-2">
-        <span class="block px-3 py-1 text-rose-300 text-sm">{{ user.username }}</span>
+        <a href="{% url 'profile' %}" class="block px-3 py-1 text-rose-300 hover:text-white text-sm">{{ user.username }}</a>
         <form method="post" action="{% url 'logout' %}">
           {% csrf_token %}
           <button type="submit" class="nav-link-mobile w-full text-left">Salir</button>

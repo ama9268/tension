@@ -150,9 +150,18 @@ def _build_analysis_prompt(user, date_from: date, date_to: date) -> tuple[str, i
 
     suffix = f" (mostrando {len(rows_to_show)} representativas)" if count > MAX_ROWS else ""
 
+    try:
+        medical_context = user.profile.medical_context.strip()
+    except Exception:
+        medical_context = ""
+
     prompt = f"""Analiza las siguientes lecturas de presión arterial del período \
 {date_from.strftime('%d/%m/%Y')} al {date_to.strftime('%d/%m/%Y')}:
+{f"""
+## Contexto médico del paciente
 
+{medical_context}
+""" if medical_context else ""}
 ## Resumen estadístico ({count} lecturas{suffix})
 
 | Métrica | Sistólica (mmHg) | Diastólica (mmHg) |

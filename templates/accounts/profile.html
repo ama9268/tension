@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Mi perfil — Tension{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+
+  <div class="flex items-center gap-3 mb-5">
+    <a href="{% url 'dashboard' %}" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <h1 class="text-2xl font-bold">Mi perfil</h1>
+  </div>
+
+  <!-- Información de cuenta -->
+  <div class="card p-5 mb-6">
+    <h2 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Cuenta</h2>
+    <div class="space-y-2 text-sm">
+      <div class="flex gap-2">
+        <span class="text-slate-500 dark:text-slate-400 w-32">Usuario:</span>
+        <span class="font-medium">{{ user.username }}</span>
+      </div>
+      {% if user.email %}
+      <div class="flex gap-2">
+        <span class="text-slate-500 dark:text-slate-400 w-32">Email:</span>
+        <span class="font-medium">{{ user.email }}</span>
+      </div>
+      {% endif %}
+      <div class="flex gap-2">
+        <span class="text-slate-500 dark:text-slate-400 w-32">Cuenta creada:</span>
+        <span class="font-medium">{{ user.date_joined|date:"d/m/Y" }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contexto médico para el agente IA -->
+  <div class="card p-5">
+    <h2 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+      Contexto médico personal
+    </h2>
+    <p class="text-xs text-slate-400 dark:text-slate-500 mb-4">
+      El agente IA incluirá este texto en cada análisis para personalizar sus recomendaciones.
+      No es obligatorio, pero cuanta más información proporciones, más útil será el análisis.
+    </p>
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+
+      <div>
+        <label class="form-label">{{ form.medical_context.label }}</label>
+        <textarea name="medical_context" rows="6" class="form-input"
+          placeholder="Ejemplo: Hombre de 58 años, peso 82 kg, trabajo de oficina (sedentario), camino 30 min al día, tomo Amlodipino 5 mg desde 2022, sin alergias conocidas, fumador ocasional.">{{ form.medical_context.value|default:'' }}</textarea>
+        {% if form.medical_context.errors %}
+        <p class="text-red-600 dark:text-red-400 text-xs mt-1">{{ form.medical_context.errors.0 }}</p>
+        {% endif %}
+        <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">{{ form.medical_context.help_text }}</p>
+      </div>
+
+      {% if form.non_field_errors %}
+      <div class="p-3 rounded-lg bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-sm">
+        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="btn-primary px-6 py-2">Guardar cambios</button>
+        <a href="{% url 'dashboard' %}" class="btn-secondary px-6 py-2">Cancelar</a>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}
