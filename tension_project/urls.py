@@ -22,6 +22,9 @@ urlpatterns = [
     path("api/v1/jwt/", TokenObtainPairView.as_view(), name="jwt-obtain"),
     path("api/v1/jwt/refresh/", TokenRefreshView.as_view(), name="jwt-refresh"),
 
+    # PWA
+    path("", include("pwa.urls")),
+
     # Apps web
     path("", include("apps.dashboard.urls")),
     path("lecturas/", include("apps.readings.urls")),

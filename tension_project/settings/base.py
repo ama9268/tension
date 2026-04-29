@@ -21,12 +21,33 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework.authtoken",
+    "pwa",
     "apps.accounts",
     "apps.readings",
     "apps.dashboard",
     "apps.analytics",
     "apps.agent",
 ]
+
+PWA_APP_NAME = "Tension"
+PWA_APP_DESCRIPTION = "Registro diario de presión arterial"
+PWA_APP_THEME_COLOR = "#9f1239"
+PWA_APP_BACKGROUND_COLOR = "#ffffff"
+PWA_APP_DISPLAY = "standalone"
+PWA_APP_SCOPE = "/"
+PWA_APP_ORIENTATION = "any"
+PWA_APP_START_URL = "/"
+PWA_APP_STATUS_BAR_COLOR = "default"
+PWA_APP_ICONS = [
+    {"src": "/static/images/icons/icon-192x192.png", "sizes": "192x192"},
+    {"src": "/static/images/icons/icon-512x512.png", "sizes": "512x512"},
+]
+PWA_APP_ICONS_APPLE = [
+    {"src": "/static/images/icons/icon-180x180.png", "sizes": "180x180"},
+]
+PWA_APP_APPLE_WEB_APP_CAPABLE = "yes"
+PWA_APP_APPLE_WEB_APP_STATUS_BAR_STYLE = "default"
+PWA_LANG = "es-ES"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
