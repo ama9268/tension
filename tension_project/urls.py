@@ -13,6 +13,15 @@ def serviceworker(request):
     js = open(settings.BASE_DIR / "static" / "js" / "serviceworker.js").read()
     return HttpResponse(js, content_type="application/javascript")
 
+
+def manifest(request):
+    import json
+    data = json.loads(open(settings.BASE_DIR / "static" / "manifest.json").read())
+    return HttpResponse(
+        json.dumps(data),
+        content_type="application/manifest+json",
+    )
+
 urlpatterns = [
     path("admin/", admin.site.urls),
 
@@ -32,6 +41,7 @@ urlpatterns = [
 
     # PWA
     path("serviceworker.js", serviceworker, name="serviceworker"),
+    path("manifest.json", manifest, name="manifest"),
 
     # Apps web
     path("", include("apps.dashboard.urls")),

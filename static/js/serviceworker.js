@@ -1,10 +1,6 @@
 const CACHE = 'tension-v1';
-const OFFLINE_URL = '/';
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.add(OFFLINE_URL))
-  );
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
@@ -19,7 +15,5 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-  event.respondWith(
-    fetch(event.request).catch(() => caches.match(OFFLINE_URL))
-  );
+  event.respondWith(fetch(event.request));
 });
