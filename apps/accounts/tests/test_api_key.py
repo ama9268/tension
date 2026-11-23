@@ -82,3 +82,9 @@ def test_revoke_only_own(client, user_a, user_b):
     client.post(reverse("apikey-revoke", args=[mine.pk]))
     mine.refresh_from_db()
     assert mine.revoked
+
+
+def test_admin_cannot_add_api_key(client, django_user_model):
+    admin = django_user_model.objects.create_superuser("root", password="pw12345678")
+    client.force_login(admin)
+    assert client.get("/admin/accounts/apikey/add/").status_code == 403

@@ -24,3 +24,7 @@ class ApiKeyAdmin(admin.ModelAdmin):
     raw_id_fields = ["user"]
     readonly_fields = ["prefix", "created_at", "last_used_at"]
     exclude = ["key_hash"]
+
+    def has_add_permission(self, request):
+        # Las claves solo se generan desde el perfil (se muestran una vez)
+        return False
