@@ -23,6 +23,10 @@
 - [ ] **HTTPS con Certbot**: TLS obligatorio en producción. Añadir configuración SSL en `deploy/nginx/tension.conf` (hay bloque comentado).
 - [ ] **Cabeceras de seguridad adicionales**: Añadir `Content-Security-Policy` en Nginx para proteger contra XSS.
 
+- [x] **API keys de solo lectura + CORS por `.env`**: implementado en `apps/accounts` (hash en BD, revocación, solo métodos seguros).
+- [ ] **Expiración/rotación de API keys**: añadir `expires_at` opcional.
+- [ ] **Throttling DRF para API keys**: `ScopedRateThrottle` para limitar abuso desde apps externas.
+
 ## 4. Rendimiento
 
 - [ ] **Prompt caching efectivo**: Verificar que `SYSTEM_PROMPT` en `prompts.py` supera los 2048 tokens mínimos para `claude-sonnet-4-6`. Confirmar `cache_read_input_tokens > 0` en logs tras la segunda llamada.
@@ -33,10 +37,12 @@
 ## 5. Testing
 
 - [ ] **Mock del cliente Anthropic**: Usar `unittest.mock.patch('anthropic.Anthropic')` en tests del agente para no consumir créditos y hacer tests deterministas.
-- [ ] **Test de aislamiento de datos (crítico)**: Verificar que usuario B no puede acceder a lecturas de usuario A via API (`GET /api/v1/readings/`) ni via web (`/lecturas/{id}/`).
+- [x] **Test de aislamiento de datos (crítico)** (API cubierta en `apps/readings/tests/test_api_isolation.py`; falta la parte web): Verificar que usuario B no puede acceder a lecturas de usuario A via API (`GET /api/v1/readings/`) ni via web (`/lecturas/{id}/`).
 - [ ] **Tests de clasificación**: Tests unitarios para `BloodPressureReading.classification()` cubriendo todos los límites exactos de cada categoría AHA (valores en el límite, por encima y por debajo).
 - [ ] **Test de exportación CSV**: Verificar que el CSV exportado contiene exactamente los campos esperados y solo los datos del usuario autenticado.
 - [ ] **Tests de formulario**: Verificar validación cruzada diastólica < sistólica en el formulario web.
+
+- [x] **Base pytest-django**: `pytest.ini`, `conftest.py` y tests de API keys/CORS. Pendiente `pytest-cov` y CI.
 
 ## 6. Deuda técnica
 
@@ -45,3 +51,5 @@
 - [ ] **Alertas por email**: Notificación cuando una lectura supera umbrales peligrosos (>180/120 mmHg) usando `Django send_mail`. Pendiente de implementar.
 - [ ] **Historial de análisis paginado**: La vista `/agente/` muestra los 10 últimos. Añadir paginación o botón "Ver más" para historiales largos.
 - [ ] **Internacionalización (i18n)**: Las clasificaciones están hardcodeadas en español en el modelo. Considerar `gettext` si se necesita soporte multiidioma en el futuro.
+- [ ] **Documentar la API con `drf-spectacular`** (OpenAPI/Swagger) para consumidores externos.
+- [ ] **`/readings/stats/` devuelve 404 sin datos**: mejor 200 con ceros para clientes externos.

@@ -70,5 +70,38 @@
     </form>
   </div>
 
+  <!-- API keys de solo lectura -->
+  <div class="card p-5 mt-6">
+    <h2 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">API keys (solo lectura)</h2>
+    <p class="text-xs text-slate-400 dark:text-slate-500 mb-4">
+      Para que otras apps lean tus datos: <code>Authorization: ApiKey &lt;clave&gt;</code> en <code>/api/v1/readings/</code>.
+    </p>
+    {% if new_api_key %}
+    <div class="p-3 mb-4 rounded-lg bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-sm">
+      Copia tu clave ahora, no se volverá a mostrar:
+      <div class="font-mono break-all mt-1 select-all">{{ new_api_key }}</div>
+    </div>
+    {% endif %}
+    <ul class="space-y-2 mb-4 text-sm">
+      {% for k in api_keys %}
+      <li class="flex items-center justify-between gap-2">
+        <span>{{ k.name }} <span class="font-mono text-slate-400">{{ k.prefix }}…</span>
+          {% if k.revoked %}<span class="text-red-600">(revocada)</span>{% elif k.last_used_at %}<span class="text-xs text-slate-400">último uso {{ k.last_used_at|date:"d/m/Y H:i" }}</span>{% endif %}</span>
+        {% if not k.revoked %}
+        <form method="post" action="{% url 'apikey-revoke' k.pk %}">{% csrf_token %}
+          <button class="btn-secondary px-3 py-1 text-xs">Revocar</button>
+        </form>
+        {% endif %}
+      </li>
+      {% empty %}
+      <li class="text-slate-400">Sin API keys.</li>
+      {% endfor %}
+    </ul>
+    <form method="post" action="{% url 'apikey-create' %}" class="flex gap-2">{% csrf_token %}
+      <input name="name" maxlength="80" required placeholder="Nombre (p. ej. Mi web)" class="form-input">
+      <button class="btn-primary px-4 py-2">Crear</button>
+    </form>
+  </div>
+
 </div>
 {% endblock %}

@@ -359,6 +359,23 @@ sudo nginx -t && sudo systemctl reload nginx
 
 ---
 
+## Consumir la API desde otras apps (solo lectura)
+
+1. Crear una API key en `/accounts/profile/` → "API keys" (se muestra una sola vez; en BD solo se guarda el hash).
+2. Si la app es web en otro dominio, añadir su origen a `CORS_ALLOWED_ORIGINS` en `.env` (separados por coma) y reiniciar.
+3. Llamar con la cabecera `Authorization: ApiKey <clave>`:
+
+```bash
+curl -H "Authorization: ApiKey tk_xxx" "https://dominio/api/v1/readings/?from=2026-01-01&to=2026-01-31"
+```
+```js
+fetch("https://dominio/api/v1/readings/stats/", { headers: { Authorization: "ApiKey tk_xxx" } })
+```
+
+Las API keys solo permiten GET/HEAD/OPTIONS (POST/PATCH/DELETE y `/agent/analyze/` → 403). Parámetros de listado: `from`, `to`, `ordering`, `page` (50/página). Tests: `pytest`.
+
+---
+
 ## Comportamiento en Planificación
 
 Siempre que se presente un plan de implementación, debe incluirse una sección final **"Recomendaciones para Profesionalizar el Desarrollo"** con estos puntos (solo los relevantes al contexto):
